@@ -3,6 +3,7 @@ import 'package:flutter_application_1/utils/constants.dart';
 import 'package:flutter_application_1/widgets/banner.dart';
 import 'package:flutter_application_1/widgets/my_icon_button.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class MyAppHomeScreen extends StatefulWidget {
   const MyAppHomeScreen({super.key});
@@ -12,6 +13,9 @@ class MyAppHomeScreen extends StatefulWidget {
 }
 
 class _MyAppHomeScreenState extends State<MyAppHomeScreen> {
+  String category = "All";
+  final CollectionReference categoriesItems = FirebaseFirestore.instance
+      .collection("App-Category");
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -22,11 +26,59 @@ class _MyAppHomeScreenState extends State<MyAppHomeScreen> {
           children: [
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 15),
-              child: Column(children: [
-                headerParts(), 
-                mySearchBar(),
-                BannerToExplore(),
-              ]),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  headerParts(),
+                  mySearchBar(),
+                  const BannerToExplore(),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 20),
+                    child: Text(
+                      "Categories",
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            StreamBuilder(
+              stream: categoriesItems.snapshots(),
+              builder: (context, AsyncSnapshot<QuerySnapshot> streamSnapshot) {
+                if (streamSnapshot.hasData) {
+                  return SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: List.generate(
+                        streamSnapshot.data!.docs.length,
+                        (index) => GestureDetector(
+                          onTap: () {},
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(25),
+                            ),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 10,
+                            ),
+                            margin: const EdgeInsets.only(right: 20),
+                            child: Text(
+                              streamSnapshot.data!.docs[index]["name"],
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }
+                return Center(child: CircularProgressIndicator());
+              },
             ),
           ],
         ),
